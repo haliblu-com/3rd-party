@@ -109,19 +109,19 @@ class ResPartner(models.Model):
 
     @api.model
     def default_get(self, fields_list):
-        """Invert name when getting default values."""
-        if "firstname" in fields_list or "lastname" in fields_list:
-            fields_list.append("name")
+        """Invert name when getting default values without modifying fields_list."""
         result = super().default_get(fields_list)
 
-        inverted = self._get_inverse_name(
-            self._get_whitespace_cleaned_name(result.get("name", "")),
-            result.get("is_company", False),
-        )
+        # Only attempt name inversion if name is available
+        if "name" in result:
+            inverted = self._get_inverse_name(
+                self._get_whitespace_cleaned_name(result["name"]),
+                result.get("is_company", False),
+            )
 
-        for field in list(inverted.keys()):
-            if field in fields_list:
-                result[field] = inverted.get(field)
+            for field in inverted.keys():
+                if field in fields_list:
+                    result[field] = inverted.get(field)
 
         return result
 
